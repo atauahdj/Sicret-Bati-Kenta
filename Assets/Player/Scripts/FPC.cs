@@ -39,8 +39,6 @@ public class FPC : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.Locked;
         Stamina = MaxStamina;
-
-        // Настройка AudioSource
         if (movementSounds == null)
             movementSounds = GetComponent<AudioSource>();
 

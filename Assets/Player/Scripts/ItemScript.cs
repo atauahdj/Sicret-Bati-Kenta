@@ -10,10 +10,11 @@ public class ItemScript : MonoBehaviour
     public Transform drop;
     public Camera playerCamera;
     public float pickupRange = 3f;
+    public bool Key;
 
     private Transform Item;
     private bool Hold = false;
-    private GameObject currentItem = null;
+    public GameObject currentItem = null;
 
     void Update()
     {

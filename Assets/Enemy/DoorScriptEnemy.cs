@@ -1,7 +1,8 @@
 using UnityEngine;
 
-public class DoorScript : MonoBehaviour
+public class DoorScriptEnemy : MonoBehaviour
 {
+    public Transform EnemyPosition;
     public Camera playerCamera;
     public float openAngle = 90f;
     public float animationSpeed = 2f;
@@ -13,17 +14,13 @@ public class DoorScript : MonoBehaviour
     private Vector3 startAngles;
     private Vector3 targetAngles;
     private MoveDestination MD;
-    public GameObject key;
-    public bool Lock;
-    private bool isLocked;
     void Start()
     {
-        isLocked = Lock;
         MD = FindAnyObjectByType<MoveDestination>();
     }
     void Update()
     {
-        Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
+        Ray ray = new Ray(EnemyPosition.position, EnemyPosition.forward);
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit, 3f))
         {
@@ -33,17 +30,10 @@ public class DoorScript : MonoBehaviour
         {
             currentDoor = transform.gameObject;
         }
-        if((Vector3.Distance(key.transform.position, playerCamera.transform.position) <= 2f) && currentDoor != null)
+
+        if ((currentDoor != null && currentDoor.CompareTag("Door") && !isAnimating) && (Vector3.Distance(currentDoor.transform.position, EnemyPosition.position) <= 2f))
         {
-            currentDoor.GetComponent<DoorScript>().isLocked = false;
-        }
-        Debug.Log(isLocked);
-        if ((Input.GetKeyDown(KeyCode.E) && currentDoor != null && currentDoor.CompareTag("Door") && !isAnimating))
-        {
-            if (currentDoor.GetComponent<DoorScript>().isLocked == false){
-                StartDoorAnimation();
-            }
-            
+            StartDoorAnimation();
         }
 
         if (isAnimating && animatingDoor != null)

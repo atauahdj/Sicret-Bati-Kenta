@@ -24,6 +24,8 @@ public class MoveDestination : MonoBehaviour
     private GameObject lastPos;
     private float twc;
     private bool wasSpawned;
+    public AudioSource movementEnemySounds;
+    public AudioClip walkSounds;
     void Start()
     {
         Head = GameObject.Find("Head");
@@ -33,10 +35,22 @@ public class MoveDestination : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         speedDef = agent.speed;
         speedAt = agent.speed * 1.4f;
+        movementEnemySounds.loop = true;
+        movementEnemySounds.clip = walkSounds;
     }
 
     private void Update()
     {
+        if(!movementEnemySounds.isPlaying && !agent.isStopped)
+        {
+            movementEnemySounds.clip = walkSounds;
+            movementEnemySounds.Play();
+        }
+        else if(movementEnemySounds.isPlaying && agent.isStopped)
+        {
+            movementEnemySounds.clip = null;
+            movementEnemySounds.Stop();
+        }
         if (isAttacking)
         {
             AttackLogic();
@@ -83,43 +97,45 @@ public class MoveDestination : MonoBehaviour
         }
         return false;
     }
-    void Patrol()
+void Patrol()
+{
+    agent.speed = speedDef;
+    Vector3 targetPosition;
+    if (lastPos != null)
     {
-        agent.speed = speedDef;
-        agent.isStopped = false;
-        if(lastPos != null)
+        targetPosition = lastPos.transform.position;
+        if (Vector3.Distance(transform.position, targetPosition) < 1f)
         {
-            agent.destination = lastPos.transform.position;
-            if (Vector3.Distance(transform.position, lastPos.transform.position) < 1f)
-            {
-                Destroy(lastPos);
-            }
-        }
-        else
-        {
-            agent.destination = points[currentPoint].position;
-        }
-        if (Vector3.Distance(transform.position, points[currentPoint].position) <= 1f)
-        { 
-            agent.isStopped = true;
-            currentTime += Time.deltaTime;
-
-            if (currentTime >= MaxTime)
-            {
-                currentTime = 0f;
-                int newPoint = currentPoint;
-                while (newPoint == currentPoint && points.Length > 1)
-                {
-                    newPoint = Random.Range(0, points.Length);
-                }
-                currentPoint = newPoint;
-            }
-            else
-            {
-                agent.isStopped = false;
-            }
+            Destroy(lastPos);
+            targetPosition = points[currentPoint].position; 
         }
     }
+    else
+    {
+        targetPosition = points[currentPoint].position;
+    }
+    agent.destination = targetPosition;
+    if (Vector3.Distance(transform.position, targetPosition) <= 1f)
+    { 
+        agent.isStopped = true;
+        currentTime += Time.deltaTime;
+        if (currentTime >= MaxTime)
+        {
+            currentTime = 0f;
+            int newPoint = currentPoint;
+            while (newPoint == currentPoint && points.Length > 1)
+            {
+                newPoint = Random.Range(0, points.Length);
+            }
+            currentPoint = newPoint;
+            agent.isStopped = false; 
+        }
+    }
+    else
+    {
+        agent.isStopped = false;
+    }
+}
 
     void Chase()
     {
