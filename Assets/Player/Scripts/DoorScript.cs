@@ -6,14 +6,13 @@ public class DoorScript : MonoBehaviour
     public float openAngle = 90f;
     public float animationSpeed = 2f;
     private bool isOpened = false;
-    private bool isAnimating = false;
+    public bool isAnimating = false;
     private GameObject currentDoor;
     private GameObject animatingDoor;
     private float t = 0f;
     private Vector3 startAngles;
     private Vector3 targetAngles;
     private MoveDestination MD;
-
     void Start()
     {
         MD = FindAnyObjectByType<MoveDestination>();
@@ -53,7 +52,7 @@ public class DoorScript : MonoBehaviour
         }
     }
 
-    void StartDoorAnimation()
+    public void StartDoorAnimation()
     {
         isAnimating = true;
         t = 0f;

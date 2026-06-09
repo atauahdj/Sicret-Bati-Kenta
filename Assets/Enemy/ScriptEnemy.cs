@@ -42,7 +42,6 @@ public class MoveDestination : MonoBehaviour
             AttackLogic();
             return;
         }
-
         if (CanSeePlayer())
         {
             twc = 0f;
@@ -84,7 +83,6 @@ public class MoveDestination : MonoBehaviour
         }
         return false;
     }
-
     void Patrol()
     {
         agent.speed = speedDef;
@@ -125,7 +123,7 @@ public class MoveDestination : MonoBehaviour
 
     void Chase()
     {
-        twc = 1f;
+        twc = 0.2f;
         agent.speed = speedAt;
         agent.destination = player.position;
         agent.isStopped = false;
@@ -157,17 +155,21 @@ public class MoveDestination : MonoBehaviour
 
     void UpdateAnimation()
     {
-        bool Chase = false;
         bool isMoving = !agent.isStopped && agent.velocity.magnitude > 0.1f;
-        if (twc == 1f || lastPos != null)
+        if (CanSeePlayer())
         {
-            Chase = true;
+            anim.SetBool("Running", isMoving);
+            anim.SetBool("Walk", false);
+        }
+        else if (lastPos != null)
+        {
+            anim.SetBool("Running", isMoving);
+            anim.SetBool("Walk", false);
         }
         else
         {
-            Chase = false;
+            anim.SetBool("Walk", isMoving);
+            anim.SetBool("Running", false);
         }
-        if (twc < 1f) anim.SetBool("Walk", isMoving);
-        else anim.SetBool("Running", Chase);
     }
 }

@@ -30,16 +30,32 @@ public class FPC : MonoBehaviour
     private bool isGrounded;
     [Header("Crouch")]
     public float crouchSpeed;
+    [Header("Audio")]
+    public AudioClip walkSounds;
+    public AudioSource movementSounds;
+    public MoveDestination MD;
+
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
         Stamina = MaxStamina;
+
+        // Настройка AudioSource
+        if (movementSounds == null)
+            movementSounds = GetComponent<AudioSource>();
+
+        movementSounds.loop = true;
+        movementSounds.clip = walkSounds;
     }
+
     void Update()
     {
+        bool isSprinting = move && Input.GetKey(KeyCode.LeftShift) && Stamina > 0f;
+        bool isCrouching = Input.GetKey(KeyCode.LeftControl);
         #region Movement
         movement = new Vector3(0, 0, 0);
         move = false;
+
         if (Input.GetKey(KeyCode.W))
         {
             movement.z = +1;
@@ -60,8 +76,19 @@ public class FPC : MonoBehaviour
             movement.x = +1;
             move = true;
         }
+
+        if (move && !movementSounds.isPlaying && isGrounded)
+        {
+            movementSounds.Play();
+        }
+        else if ((!move || !isGrounded || isCrouching) && movementSounds.isPlaying)
+        {
+            movementSounds.Stop();
+        }
+
         transform.Translate(movement * speed * Time.deltaTime);
         #endregion
+
         #region Cursor
         if (Input.GetKeyDown(KeyCode.Tab))
         {
@@ -72,6 +99,7 @@ public class FPC : MonoBehaviour
             statusCurs = !statusCurs;
         }
         #endregion
+
         #region Camera
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
@@ -81,20 +109,22 @@ public class FPC : MonoBehaviour
         playerCamera.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
         transform.Rotate(Vector3.up * mouseX);
         #endregion
-        #region Sprint & Crouch (исправлено)
+
+        #region Sprint & Crouch
         float targetSpeed = walkSpeed;
-        bool isSprinting = move && Input.GetKey(KeyCode.LeftShift) && Stamina > 0f;
-        bool isCrouching = Input.GetKey(KeyCode.LeftControl);
         if (isCrouching)
         {
             gameObject.GetComponent<CapsuleCollider>().height = 1;
             targetSpeed = crouchSpeed;
+            MD.range = 10f;
         }
         else
         {
             gameObject.GetComponent<CapsuleCollider>().height = 2;
+            MD.range = 50f;
         }
-        if (isSprinting)
+
+        if (isSprinting && !isCrouching)
         {
             targetSpeed = sprintSpeed;
             playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, 90f, Time.deltaTime * 10f);
@@ -127,6 +157,7 @@ public class FPC : MonoBehaviour
         Stamina = Mathf.Clamp(Stamina, 0f, MaxStamina);
         Sprintbar.value = Stamina / MaxStamina;
         #endregion
+
         #region Jump
         if (Input.GetKeyDown(KeyCode.Space))
         {
@@ -137,6 +168,7 @@ public class FPC : MonoBehaviour
         }
         #endregion
     }
+
     private void OnCollisionStay(Collision collision)
     {
         if (collision.gameObject.CompareTag("Ground"))
@@ -144,6 +176,7 @@ public class FPC : MonoBehaviour
             isGrounded = true;
         }
     }
+
     private void OnCollisionExit(Collision collision)
     {
         if (collision.gameObject.CompareTag("Ground"))
