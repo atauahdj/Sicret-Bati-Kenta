@@ -127,6 +127,7 @@ public class FPC : MonoBehaviour
             targetSpeed = sprintSpeed;
             playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, 90f, Time.deltaTime * 10f);
             Stamina -= Time.deltaTime;
+            if(sprintSpeed != walkSpeed)
             movementSounds.pitch = 1.4f;
 
             if (Stamina <= 0f)

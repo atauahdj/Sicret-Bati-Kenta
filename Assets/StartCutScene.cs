@@ -30,11 +30,6 @@ public class StartCutScene : MonoBehaviour
                 FPC.gameObject.SetActive(true);
                 cam.SetActive(false);
                 gameObject.SetActive(false);
-            }
-            else
-            {
-                TimeCutScene -= Time.deltaTime;
-                FPC.gameObject.SetActive(false);
                 if(Remove != null)
                 {
                     foreach (GameObject obj in Remove)
@@ -47,8 +42,12 @@ public class StartCutScene : MonoBehaviour
                     }
                 }
             }
+            else
+            {
+                TimeCutScene -= Time.deltaTime;
+                FPC.gameObject.SetActive(false);
+            }
         }
-        Debug.Log("mouseSensevity: :" + FPC.mouseSensitivity);
     }
     private void OnTriggerEnter(Collider col)
     {
