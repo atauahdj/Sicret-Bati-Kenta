@@ -5,7 +5,8 @@ using UnityEngine.AI;
 
 public class MoveDestination : MonoBehaviour
 {
-    public Transform[] points;
+    public Transform[] pointsHome;
+    public Transform[] pointsStreet;
     public int currentPoint;
     public float MaxTime;
     private float currentTime;
@@ -26,8 +27,16 @@ public class MoveDestination : MonoBehaviour
     private bool wasSpawned;
     public AudioSource movementEnemySounds;
     public AudioClip walkSounds;
+    private SafeZone SZ;
+    public bool ZvonokUlik = false;
+    public Transform ZvonokPoint;
+    private Zvonok Zvonok;
+    private PointScript PointScript;
     void Start()
     {
+        Zvonok = FindObjectOfType<Zvonok>();
+        ZvonokUlik = false;
+        SZ = FindObjectOfType<SafeZone>();
         Head = GameObject.Find("Head");
         FPC = FindObjectOfType<FPC>();
         anim = GetComponent<Animator>();
@@ -41,21 +50,32 @@ public class MoveDestination : MonoBehaviour
 
     private void Update()
     {
-        if(!movementEnemySounds.isPlaying && !agent.isStopped)
+
+        bool shouldPlaySound = !agent.isStopped && (anim.GetBool("Running") || anim.GetBool("Walk"));
+
+        if (shouldPlaySound)
         {
-            movementEnemySounds.clip = walkSounds;
-            movementEnemySounds.Play();
+            if (!movementEnemySounds.isPlaying)
+            {
+                movementEnemySounds.clip = walkSounds;
+                movementEnemySounds.loop = true;
+                movementEnemySounds.Play();
+            }
         }
-        else if(movementEnemySounds.isPlaying && agent.isStopped)
+        else
         {
-            movementEnemySounds.clip = null;
-            movementEnemySounds.Stop();
+            if (movementEnemySounds.isPlaying)
+            {
+                movementEnemySounds.Stop();
+            }
         }
+
         if (isAttacking)
         {
             AttackLogic();
             return;
         }
+
         if (CanSeePlayer())
         {
             twc = 0f;
@@ -72,14 +92,26 @@ public class MoveDestination : MonoBehaviour
                 lastPos = Instantiate(lastPosPref, player.position, Quaternion.identity);
                 wasSpawned = true;
             }
-            Patrol();
+            if (!ZvonokUlik)
+                Patrol();
         }
+
+        if (ZvonokUlik)
+        {
+            agent.destination = ZvonokPoint.position;
+        }
+
+        if (SZ.InSafeZone)
+            Destroy(lastPos);
+
         UpdateAnimation();
     }
 
-    bool CanSeePlayer()
+    public bool CanSeePlayer()
     {
         if (Vector3.Distance(transform.position, player.position) > range)
+            return false;
+        if (SZ.InSafeZone)
             return false;
 
         Vector3 direction = (player.position - transform.position).normalized;
@@ -107,25 +139,26 @@ void Patrol()
         if (Vector3.Distance(transform.position, targetPosition) < 1f)
         {
             Destroy(lastPos);
-            targetPosition = points[currentPoint].position; 
+            targetPosition = pointsHome[currentPoint].position; 
         }
     }
     else
     {
-        targetPosition = points[currentPoint].position;
+        targetPosition = pointsHome[currentPoint].position;
     }
     agent.destination = targetPosition;
     if (Vector3.Distance(transform.position, targetPosition) <= 1f)
     { 
         agent.isStopped = true;
         currentTime += Time.deltaTime;
+            MaxTime = pointsHome[currentPoint].GetComponent<PointScript>().Time;
         if (currentTime >= MaxTime)
         {
             currentTime = 0f;
             int newPoint = currentPoint;
-            while (newPoint == currentPoint && points.Length > 1)
+            while (newPoint == currentPoint && pointsHome.Length > 1)
             {
-                newPoint = Random.Range(0, points.Length);
+                newPoint = Random.Range(0, pointsHome.Length);
             }
             currentPoint = newPoint;
             agent.isStopped = false; 
@@ -156,7 +189,6 @@ void Patrol()
         agent.isStopped = true;
         currentTime += Time.deltaTime;
         FPC.speed = 0f;
-        transform.LookAt(FPC.transform);
         FPC.transform.LookAt(transform.position);
         if (currentTime >= 1f)
         {

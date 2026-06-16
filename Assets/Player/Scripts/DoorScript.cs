@@ -10,17 +10,19 @@ public class DoorScript : MonoBehaviour
     private GameObject currentDoor;
     private GameObject animatingDoor;
     private float t = 0f;
-    private Vector3 startAngles;
-    private Vector3 targetAngles;
+    private Quaternion startRotation;
+    private Quaternion targetRotation;
     private MoveDestination MD;
     public GameObject key;
     public bool Lock;
     private bool isLocked;
+
     void Start()
     {
         isLocked = Lock;
         MD = FindAnyObjectByType<MoveDestination>();
     }
+
     void Update()
     {
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
@@ -31,19 +33,23 @@ public class DoorScript : MonoBehaviour
         }
         else
         {
-            currentDoor = transform.gameObject;
+            currentDoor = null;
         }
-        if((Vector3.Distance(key.transform.position, playerCamera.transform.position) <= 2f) && currentDoor != null)
+
+        if (key != null && currentDoor != null && Vector3.Distance(key.transform.position, playerCamera.transform.position) <= 2f)
         {
-            currentDoor.GetComponent<DoorScript>().isLocked = false;
+            DoorScript doorScript = currentDoor.GetComponent<DoorScript>();
+            if (doorScript != null)
+                doorScript.isLocked = false;
         }
-        Debug.Log(isLocked);
-        if ((Input.GetKeyDown(KeyCode.E) && currentDoor != null && currentDoor.CompareTag("Door") && !isAnimating))
+
+        if (Input.GetKeyDown(KeyCode.E) && currentDoor != null && currentDoor.CompareTag("Door") && !isAnimating)
         {
-            if (currentDoor.GetComponent<DoorScript>().isLocked == false){
-                StartDoorAnimation();
+            DoorScript doorScript = currentDoor.GetComponent<DoorScript>();
+            if (doorScript != null && !doorScript.isLocked)
+            {
+                doorScript.StartDoorAnimation();
             }
-            
         }
 
         if (isAnimating && animatingDoor != null)
@@ -51,8 +57,7 @@ public class DoorScript : MonoBehaviour
             t += Time.deltaTime * animationSpeed;
             t = Mathf.Clamp01(t);
 
-            Vector3 newAngles = Vector3.Lerp(startAngles, targetAngles, t);
-            animatingDoor.transform.eulerAngles = newAngles;
+            animatingDoor.transform.rotation = Quaternion.Lerp(startRotation, targetRotation, t);
 
             if (t >= 1f)
             {
@@ -65,18 +70,20 @@ public class DoorScript : MonoBehaviour
 
     public void StartDoorAnimation()
     {
+        if (isAnimating) return;
+
         isAnimating = true;
         t = 0f;
-        animatingDoor = currentDoor;
-        startAngles = animatingDoor.transform.eulerAngles;
+        animatingDoor = gameObject; // ← ВАЖНО: используем саму дверь, а не currentDoor
+        startRotation = animatingDoor.transform.rotation;
 
         if (!isOpened)
         {
-            targetAngles = startAngles + new Vector3(0, openAngle, 0);
+            targetRotation = startRotation * Quaternion.Euler(0, openAngle, 0);
         }
         else
         {
-            targetAngles = startAngles - new Vector3(0, openAngle, 0);
+            targetRotation = startRotation * Quaternion.Euler(0, -openAngle, 0);
         }
     }
 }

@@ -11,9 +11,10 @@ public class ItemScript : MonoBehaviour
     public Camera playerCamera;
     public float pickupRange = 3f;
     public bool Key;
+    public GameObject PickUpItem;
 
-    private Transform Item;
-    private bool Hold = false;
+    public Transform Item;
+    public bool Hold = false;
     public GameObject currentItem = null;
 
     void Update()
@@ -28,6 +29,7 @@ public class ItemScript : MonoBehaviour
                 Item.GetComponent<Rigidbody>().isKinematic = false;
                 Item.GetComponent<Collider>().enabled = true;
                 Item.position = drop.position;
+                PickUpItem = null;
                 Hold = false;
                 Item = null;
             }
@@ -67,5 +69,6 @@ public class ItemScript : MonoBehaviour
         item.GetComponent<Collider>().enabled = false;
         Item.localRotation = Quaternion.Euler(0, 0, 0);
         currentItem = null;
+        PickUpItem = item;
     }
 }

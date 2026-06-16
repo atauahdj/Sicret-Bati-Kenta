@@ -127,6 +127,7 @@ public class FPC : MonoBehaviour
             targetSpeed = sprintSpeed;
             playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, 90f, Time.deltaTime * 10f);
             Stamina -= Time.deltaTime;
+            movementSounds.pitch = 1.4f;
 
             if (Stamina <= 0f)
             {
@@ -137,6 +138,7 @@ public class FPC : MonoBehaviour
         else
         {
             playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, 70f, Time.deltaTime * 10f);
+            movementSounds.pitch = 1f;
             if (cooldown > 0f)
             {
                 cooldown -= Time.deltaTime;

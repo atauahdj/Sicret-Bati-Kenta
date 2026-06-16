@@ -28,7 +28,7 @@ public class DoorScriptEnemy : MonoBehaviour
         }
         else
         {
-            currentDoor = transform.gameObject;
+            currentDoor = null;
         }
 
         if ((currentDoor != null && currentDoor.CompareTag("Door") && !isAnimating) && (Vector3.Distance(currentDoor.transform.position, EnemyPosition.position) <= 2f))
@@ -55,6 +55,7 @@ public class DoorScriptEnemy : MonoBehaviour
 
     public void StartDoorAnimation()
     {
+        
         isAnimating = true;
         t = 0f;
         animatingDoor = currentDoor;
